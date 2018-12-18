@@ -1,0 +1,98 @@
+variables:
+  MAVEN_OPTS: "-Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true"
+  MAVEN_CLI_OPTS: "--batch-mode -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer=warn --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true --settings /opt/maven/settings.xml --global-toolchains /opt/maven/toolchain.xml"
+  GIT_SUBMODULE_STRATEGY: recursive
+
+cache:
+  key: $CI_JOB_NAME
+  paths:
+    - .m2/repository
+
+stages:
+  - prepare
+  - build
+  - test
+  - deploy
+
+validate:
+  tags:
+    - java-multi
+    - maven
+  stage: prepare
+  script:
+    - 'mvn $MAVEN_CLI_OPTS validate'
+  retry: 2
+
+compile:
+  tags:
+    - java-multi
+    - maven
+  stage: build
+  script:
+    - 'mvn $MAVEN_CLI_OPTS compile'
+  retry: 2
+
+release:
+  tags:
+    - java10
+    - maven
+  stage: deploy
+  only:
+    - release
+  script:
+    - 'mvn $MAVEN_CLI_OPTS deploy'
+
+unit_test:
+  tags:
+    - java-multi
+    - maven
+  stage: test
+  script:
+    - 'mvn $MAVEN_CLI_OPTS test'
+  retry: 2
+  artifacts:
+    reports:
+      junit:
+        - '*/target/surefire-reports/*.xml'
+        - '*/target/failsafe-reports/*.xml'
+
+verify:
+  tags:
+    - java-multi
+    - maven
+  stage: test
+  script:
+    - 'mvn $MAVEN_CLI_OPTS verify'
+    - "awk -F, '{ instructions += $4 + $5; covered += $5 } END { print covered, \"/\", instructions, \" instructions covered\"; print 100*covered/instructions, \"% covered\" }' */target/site/jacoco/jacoco.csv"
+  retry: 2
+  coverage: '/\d+\.\d+\s*\%\s+covered/'
+  artifacts:
+    reports:
+      junit:
+        - '*/target/surefire-reports/*.xml'
+        - '*/target/failsafe-reports/*.xml'
+
+deploy:
+  tags:
+    - java-multi
+    - maven
+  stage: deploy
+  script:
+    - 'mvn $MAVEN_CLI_OPTS deploy'
+  retry: 2
+  only:
+    - release
+  artifacts:
+    reports:
+      junit:
+        - '*/target/surefire-reports/*.xml'
+        - '*/target/failsafe-reports/*.xml'
+
+renew_tester_token:
+  tags:
+    - java10
+  stage: prepare
+  script:
+    - "curl --request POST --url https://vault.provingground.tech/v1/auth/token/renew-self --header 'Content-Type: application/json' --header 'X-Vault-Token: 400efe39-fbbd-a8c4-c422-f7c2d5b20974' --header 'cache-control: no-cache'"
+  only:
+    - master
