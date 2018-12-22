@@ -13,13 +13,39 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
+	<name>Distributing Outputstream</name>
+	<description>OutputStream implementation to distribute writes over multiple other OutputStreams</description>
+	<url>https://github.com/skawa-universe/distributing-outputstream</url>
+	<scm>
+		<url>https://github.com/skawa-universe/distributing-outputstream.git</url>
+	</scm>
+	<developers>
+		<developer>
+			<name>Zalan Meggyesi</name>
+			<organization>Skawa Innovation Ltd.</organization>
+			<email>zmeggyesi@skawa.hu</email>
+			<timezone>GMT+1</timezone>
+		</developer>
+	</developers>
+
 	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
 		<repository>
-			<id>singularity</id>
-			<name>singularity</name>
-			<url>http://arti.skawa.hu/artifactory/libs-release-local</url>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
 		</repository>
 	</distributionManagement>
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
 
 	<dependencies>
 		<dependency>
@@ -76,7 +102,7 @@
 							<onlyWhenRelease>true</onlyWhenRelease>
 						</requireReleaseDeps>
 						<requireJavaVersion>
-							<version>[8,)</version>
+							<version>[1.8,)</version>
 						</requireJavaVersion>
 					</rules>
 					<fail>true</fail>
@@ -90,6 +116,31 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>1.5</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>none</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.6.8</version>
+				<extensions>true</extensions>
+				<configuration>
+					<serverId>ossrh</serverId>
+					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+					<autoReleaseAfterClose>false</autoReleaseAfterClose>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -212,6 +263,20 @@
 								</requireReleaseVersion>
 							</rules>
 						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.5</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
 					</plugin>
 				</plugins>
 			</build>
