@@ -40,7 +40,7 @@ release:
   only:
     - release
   script:
-    - 'mvn $MAVEN_CLI_OPTS deploy'
+    - 'mvn $MAVEN_CLI_OPTS deploy -P release'
 
 unit_test:
   tags:
@@ -53,8 +53,8 @@ unit_test:
   artifacts:
     reports:
       junit:
-        - '*/target/surefire-reports/*.xml'
-        - '*/target/failsafe-reports/*.xml'
+        - 'target/surefire-reports/*.xml'
+        - 'target/failsafe-reports/*.xml'
 
 verify:
   tags:
@@ -63,14 +63,14 @@ verify:
   stage: test
   script:
     - 'mvn $MAVEN_CLI_OPTS verify'
-    - "awk -F, '{ instructions += $4 + $5; covered += $5 } END { print covered, \"/\", instructions, \" instructions covered\"; print 100*covered/instructions, \"% covered\" }' */target/site/jacoco/jacoco.csv"
+    - "awk -F, '{ instructions += $4 + $5; covered += $5 } END { print covered, \"/\", instructions, \" instructions covered\"; print 100*covered/instructions, \"% covered\" }' target/site/jacoco/jacoco.csv"
   retry: 2
   coverage: '/\d+\.\d+\s*\%\s+covered/'
   artifacts:
     reports:
       junit:
-        - '*/target/surefire-reports/*.xml'
-        - '*/target/failsafe-reports/*.xml'
+        - 'target/surefire-reports/*.xml'
+        - 'target/failsafe-reports/*.xml'
 
 deploy:
   tags:
@@ -85,8 +85,8 @@ deploy:
   artifacts:
     reports:
       junit:
-        - '*/target/surefire-reports/*.xml'
-        - '*/target/failsafe-reports/*.xml'
+        - 'target/surefire-reports/*.xml'
+        - 'target/failsafe-reports/*.xml'
 
 renew_tester_token:
   tags:
